@@ -7,10 +7,10 @@ function normalizeString(str) {
         .replace(/(\d+)\s*(l|kg|g|ml|quilo|litro)/i, '$1$2') 
         .replace(/\s+/g, ' ') 
 =======
-        .normalize('NFD') // Remove acentos
+        .normalize('NFD') 
         .replace(/[\u0300-\u036f]/g, '')
-        .replace(/(\d+)\s*(l|kg|g|ml|quilo|litro)/i, '$1$2') // Junta número e unidade
-        .replace(/\s+/g, ' ') // Remove espaços extras
+        .replace(/(\d+)\s*(l|kg|g|ml|quilo|litro)/i, '$1$2')
+        .replace(/\s+/g, ' ') 
 >>>>>>> f0a8788 (reajuste após revisão)
         .trim();
 }
@@ -21,7 +21,7 @@ function categorizeProducts(products) {
 <<<<<<< HEAD
     
 =======
-    // Listas de referência
+    
     const knownBrands = [
         'piracanjuba', 'italac', 'parmalat', 'tio joão', 'camil'
     ];
@@ -170,7 +170,7 @@ function categorizeProducts(products) {
 <<<<<<< HEAD
 
 =======
-// Teste com os dados do enunciado
+
 >>>>>>> f0a8788 (reajuste após revisão)
 =======
 >>>>>>> 9e54b6d (reajuste após revisão)
