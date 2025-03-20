@@ -26,14 +26,14 @@ function extractKeyFeatures(title) {
         }
     });
 
-    
+
     const types = ['integral', 'desnatado', 'semi-desnatado', 'branco', 'carioca', 'mussarela', 'prato', 'espaguete', 'parafuso'];
     const commonWords = ['leite', 'arroz', 'feijao', 'tipo', 'suco', 'queijo', 'carne', 'file', 'picanha', 'macarrao', 'oleo', 'de', 'bovina'];
 
-    // Extrair características
+
     words.forEach(word => {
         if (word.match(sizeRegex)) {
-            return; // Pula palavras de tamanho já identificadas
+            return;
         }
 
         if (types.includes(word) && !type) {
@@ -58,7 +58,7 @@ function extractKeyFeatures(title) {
     if (size === '1quilo') size = '1kg';
     if (size === '1litro') size = '1l';
 
-    const productWords = words.filter(w => 
+    const productWords = words.filter(w =>
         commonWords.includes(w) || (type && w === type) || (size && w === size)
     );
     const finalCoreProduct = productWords.join(' ');
@@ -76,12 +76,12 @@ function categorizeProducts(products) {
 
     products.forEach(product => {
         const features = extractKeyFeatures(product.title);
-    
+
         const categoryKey = `${features.coreProduct} ${features.type} ${features.size}`.trim();
 
         if (!categoriesMap.has(categoryKey)) {
             categoriesMap.set(categoryKey, {
-                category: `${features.coreProduct} ${features.size}`, 
+                category: `${features.coreProduct} ${features.size}`,
                 count: 0,
                 products: []
             });
