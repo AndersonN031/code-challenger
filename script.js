@@ -1,14 +1,16 @@
-
 function normalizeString(str) {
     return str
         .toLowerCase()
         .normalize('NFD')
         .replace(/[̀-ͯ]/g, '')
-        .replace(/(\d+)\s*(l|kg|g|ml|quilo|litro)/i, '$1$2');
+        .replace(/(\d+)\s*(l|kg|g|ml|quilo|litro)/i, '$1$2')
+        .replace(/\s+/g, ' ')
+        .trim();
 }
 
 function extractKeyFeatures(title) {
-    const words = normalizeString(title).split(/\s+/);
+    const normalizedTitle = normalizeString(title);
+    const words = normalizedTitle.split(/\s+/);
     let brand = '';
     let type = '';
     let size = '';
@@ -16,31 +18,57 @@ function extractKeyFeatures(title) {
 
     const sizeRegex = /(\d+(?:\.\d+)?)(l|kg|g|ml|quilo|litro)/i;
 
+    // Primeiro, identificar o tamanho
     words.forEach(word => {
         const sizeMatch = word.match(sizeRegex);
         if (sizeMatch) {
             size = sizeMatch[0];
-            return;
+        }
+    });
+
+    // Lista de tipos e palavras comuns
+    const types = ['integral', 'desnatado', 'semi-desnatado', 'branco', 'carioca', 'mussarela', 'prato', 'espaguete', 'parafuso'];
+    const commonWords = ['leite', 'arroz', 'feijao', 'tipo', 'suco', 'queijo', 'carne', 'file', 'picanha', 'macarrao', 'oleo', 'de', 'bovina'];
+
+    // Extrair características
+    words.forEach(word => {
+        if (word.match(sizeRegex)) {
+            return; // Pula palavras de tamanho já identificadas
         }
 
-        const types = ['integral', 'desnatado', 'semi-desnatado', 'branco', 'carioca'];
-        if (types.includes(word)) {
+        if (types.includes(word) && !type) {
             type = word;
             return;
         }
 
-        if (!brand && !['leite', 'arroz', 'feijao', 'tipo', 'suco', 'queijo', 'carne', 'file', 'picanha', 'macarrao', 'oleo'].includes(word)) {
+        if (!brand && !commonWords.includes(word) && !types.includes(word)) {
             brand = word;
-        } else {
+            return;
+        }
+
+        if (!commonWords.includes(word) && word !== brand && word !== type) {
             coreProduct.push(word);
         }
     });
 
+    // Ajustes pós-processamento
+    if (normalizedTitle.includes('semi desnatado')) {
+        type = 'semi-desnatado';
+    }
+    if (size === '1quilo') size = '1kg';
+    if (size === '1litro') size = '1l';
+
+    // Construir coreProduct a partir de palavras comuns
+    const productWords = words.filter(w => 
+        commonWords.includes(w) || (type && w === type) || (size && w === size)
+    );
+    const finalCoreProduct = productWords.join(' ');
+
     return {
-        brand,
+        brand: brand || 'default',
         type: type || 'default',
         size: size || 'default',
-        coreProduct: coreProduct.join(' ')
+        coreProduct: finalCoreProduct || 'default'
     };
 }
 
@@ -49,11 +77,12 @@ function categorizeProducts(products) {
 
     products.forEach(product => {
         const features = extractKeyFeatures(product.title);
-        const categoryKey = `${features.coreProduct} ${features.brand} ${features.type} ${features.size}`.trim();
+        // Chave baseada apenas no produto principal, tipo e tamanho (marca é separada)
+        const categoryKey = `${features.coreProduct} ${features.type} ${features.size}`.trim();
 
         if (!categoriesMap.has(categoryKey)) {
             categoriesMap.set(categoryKey, {
-                category: product.title,
+                category: `${features.coreProduct} ${features.size}`, // Exclui marca do nome da categoria
                 count: 0,
                 products: []
             });
@@ -63,13 +92,13 @@ function categorizeProducts(products) {
         category.count++;
         category.products.push({
             title: product.title,
-            supermarket: product.supermarket
+            supermarket: product.supermarket,
+            price: product.price
         });
     });
 
     return Array.from(categoriesMap.values());
 }
-
 const products = [
     { "id": 1, "title": "Leite Integral Piracanjuba 1L", "supermarket": "Supermercado A", "price": 4.99 },
     { "id": 2, "title": "Leite Integral Italac 1L", "supermarket": "Supermercado B", "price": 5.29 },
@@ -110,5 +139,4 @@ const products = [
 ]
 
 const categorizedProducts = categorizeProducts(products);
-
 console.log(JSON.stringify(categorizedProducts, null, 2));
