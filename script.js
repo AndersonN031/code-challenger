@@ -18,7 +18,7 @@ function extractKeyFeatures(title) {
 
     const sizeRegex = /(\d+(?:\.\d+)?)(l|kg|g|ml|quilo|litro)/i;
 
-    // Primeiro, identificar o tamanho
+
     words.forEach(word => {
         const sizeMatch = word.match(sizeRegex);
         if (sizeMatch) {
@@ -26,7 +26,7 @@ function extractKeyFeatures(title) {
         }
     });
 
-    // Lista de tipos e palavras comuns
+    
     const types = ['integral', 'desnatado', 'semi-desnatado', 'branco', 'carioca', 'mussarela', 'prato', 'espaguete', 'parafuso'];
     const commonWords = ['leite', 'arroz', 'feijao', 'tipo', 'suco', 'queijo', 'carne', 'file', 'picanha', 'macarrao', 'oleo', 'de', 'bovina'];
 
@@ -51,14 +51,13 @@ function extractKeyFeatures(title) {
         }
     });
 
-    // Ajustes pós-processamento
+
     if (normalizedTitle.includes('semi desnatado')) {
         type = 'semi-desnatado';
     }
     if (size === '1quilo') size = '1kg';
     if (size === '1litro') size = '1l';
 
-    // Construir coreProduct a partir de palavras comuns
     const productWords = words.filter(w => 
         commonWords.includes(w) || (type && w === type) || (size && w === size)
     );
@@ -77,12 +76,12 @@ function categorizeProducts(products) {
 
     products.forEach(product => {
         const features = extractKeyFeatures(product.title);
-        // Chave baseada apenas no produto principal, tipo e tamanho (marca é separada)
+    
         const categoryKey = `${features.coreProduct} ${features.type} ${features.size}`.trim();
 
         if (!categoriesMap.has(categoryKey)) {
             categoriesMap.set(categoryKey, {
-                category: `${features.coreProduct} ${features.size}`, // Exclui marca do nome da categoria
+                category: `${features.coreProduct} ${features.size}`, 
                 count: 0,
                 products: []
             });
