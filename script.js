@@ -109,7 +109,6 @@ function categorizeProducts(products) {
         const normalizedTitle = normalizeString(product.title);
         const words = normalizedTitle.split(' ');
 
-        // Extrair tamanho
         let size = '';
         const sizeRegex = /(\d+(?:\.\d+)?)(l|kg|g|ml|quilo|litro)/i;
         const sizeMatch = normalizedTitle.match(sizeRegex);
@@ -120,13 +119,13 @@ function categorizeProducts(products) {
             });
         }
 
-        // Separar palavras em marca, tipo e produto base
+    
         let brand = '';
         let type = '';
         const coreProductWords = [];
 
         words.forEach(word => {
-            if (word.match(sizeRegex)) return; // Ignora tamanho
+            if (word.match(sizeRegex)) return; 
             if (knownBrands.includes(word) && !brand) {
                 brand = word;
                 return;
@@ -140,11 +139,9 @@ function categorizeProducts(products) {
             }
         });
 
-        // Montar chave de categoria (ordem fixa: produto + tipo + marca + tamanho)
         const productBase = coreProductWords.filter(w => commonWords.includes(w)).join(' ');
         const categoryKey = `${productBase} ${type} ${brand} ${size}`.trim().replace(/\s+/g, ' ');
 
-        // Capitalizar primeira letra de cada palavra para o nome da categoria
         const categoryName = categoryKey
             .split(' ')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -170,10 +167,13 @@ function categorizeProducts(products) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 // Teste com os dados do enunciado
 >>>>>>> f0a8788 (reajuste após revisão)
+=======
+>>>>>>> 9e54b6d (reajuste após revisão)
 const products = [
     { "id": 1, "title": "Leite Integral Piracanjuba 1L", "supermarket": "Supermercado A" },
     { "id": 2, "title": "Leite Piracanjuba Integral 1L", "supermarket": "Supermercado B" },
