@@ -2,9 +2,9 @@ function normalizeString(str) {
     return str
         .toLowerCase()
         .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
-        .replace(/(\d+)\s*(l|kg|g|ml|quilo|litro)/i, '$1$2')
-        .replace(/\s+/g, ' ')
+        .replace(/[\u0300-\u036f]/g, '') // Remove diacríticos
+        .replace(/(\d+)\s*(l|kg|g|ml|quilo|litro)/i, '$1$2') // Padroniza unidades
+        .replace(/\s+/g, ' ') // Remove espaços extras
         .trim();
 }
 
@@ -16,48 +16,61 @@ function extractKeyFeatures(title) {
     let size = '';
     const coreProduct = [];
 
-    const sizeRegex = /(\d+(?:\.\d+)?)(l|kg|g|ml|quilo|litro)/i;
+    // Dicionário de substituições para unidades
+    const unitSubstitutions = {
+        'quilo': 'kg',
+        'litro': 'l',
+        'kilo': 'kg',
+        'kg': 'kg',
+        'l': 'l',
+        'g': 'g',
+        'ml': 'ml'
+    };
 
+    // Lista de marcas conhecidas
+    const knownBrands = [
+        'piracanjuba', 'italac', 'elegê', 'parmalat', 'tirolez', 'scala', 'del valle', 'natural one', 'maguary',
+        'aurora', 'casa de madeira', 'friboi', 'seara', 'swift', 'perdigão', 'sadia', 'tio joão', 'camil', 'kicaldo',
+        'soya', 'liza', 'cocinero', 'adria', 'renata', 'fortaleza', 'barilla'
+    ];
 
-    words.forEach(word => {
-        const sizeMatch = word.match(sizeRegex);
-        if (sizeMatch) {
-            size = sizeMatch[0];
-        }
-    });
-
-
+    // Lista de tipos conhecidos
     const types = ['integral', 'desnatado', 'semi-desnatado', 'branco', 'carioca', 'mussarela', 'prato', 'espaguete', 'parafuso'];
+
+    // Lista de palavras comuns que não são marcas
     const commonWords = ['leite', 'arroz', 'feijao', 'tipo', 'suco', 'queijo', 'carne', 'file', 'picanha', 'macarrao', 'oleo', 'de', 'bovina'];
 
+    // Extrai o tamanho (size)
+    const sizeRegex = /(\d+(?:\.\d+)?)\s*(l|kg|g|ml|quilo|litro)/i;
+    const sizeMatch = normalizedTitle.match(sizeRegex);
+    if (sizeMatch) {
+        size = sizeMatch[0].replace(/\s+/g, ''); // Remove espaços
+        // Aplica substituições de unidades
+        Object.entries(unitSubstitutions).forEach(([key, value]) => {
+            size = size.replace(key, value);
+        });
+    }
 
+    // Extrai a marca, tipo e coreProduct
     words.forEach(word => {
-        if (word.match(sizeRegex)) {
-            return;
-        }
+        if (word.match(sizeRegex)) return; // Ignora palavras que são tamanhos
 
         if (types.includes(word) && !type) {
-            type = word;
+            type = word; // Define o tipo
             return;
         }
 
-        if (!brand && !commonWords.includes(word) && !types.includes(word)) {
-            brand = word;
+        if (!brand && knownBrands.includes(word)) {
+            brand = word; // Define a marca
             return;
         }
 
-        if (!commonWords.includes(word) && word !== brand && word !== type) {
-            coreProduct.push(word);
+        if (!commonWords.includes(word) && !types.includes(word) && !knownBrands.includes(word)) {
+            coreProduct.push(word); // Adiciona ao coreProduct
         }
     });
 
-
-    if (normalizedTitle.includes('semi desnatado')) {
-        type = 'semi-desnatado';
-    }
-    if (size === '1quilo') size = '1kg';
-    if (size === '1litro') size = '1l';
-
+    // Define o coreProduct como a junção das palavras comuns e tipo
     const productWords = words.filter(w =>
         commonWords.includes(w) || (type && w === type) || (size && w === size)
     );
@@ -98,6 +111,8 @@ function categorizeProducts(products) {
 
     return Array.from(categoriesMap.values());
 }
+
+// Lista de produtos para teste
 const products = [
     { "id": 1, "title": "Leite Integral Piracanjuba 1L", "supermarket": "Supermercado A", "price": 4.99 },
     { "id": 2, "title": "Leite Integral Italac 1L", "supermarket": "Supermercado B", "price": 5.29 },
@@ -135,7 +150,7 @@ const products = [
     { "id": 34, "title": "Macarrão Espaguete Renata 500g", "supermarket": "Supermercado A", "price": 5.49 },
     { "id": 35, "title": "Macarrão Parafuso Fortaleza 500g", "supermarket": "Supermercado B", "price": 4.99 },
     { "id": 36, "title": "Macarrão Parafuso Barilla 500g", "supermarket": "Supermercado C", "price": 5.49 }
-]
+];
 
 const categorizedProducts = categorizeProducts(products);
 console.log(JSON.stringify(categorizedProducts, null, 2));
