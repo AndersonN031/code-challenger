@@ -1,22 +1,37 @@
 function normalizeString(str) {
     return str
         .toLowerCase()
+<<<<<<< HEAD
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '') 
         .replace(/(\d+)\s*(l|kg|g|ml|quilo|litro)/i, '$1$2') 
         .replace(/\s+/g, ' ') 
+=======
+        .normalize('NFD') // Remove acentos
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/(\d+)\s*(l|kg|g|ml|quilo|litro)/i, '$1$2') // Junta número e unidade
+        .replace(/\s+/g, ' ') // Remove espaços extras
+>>>>>>> f0a8788 (reajuste após revisão)
         .trim();
 }
 
-function extractKeyFeatures(title) {
-    const normalizedTitle = normalizeString(title);
-    const words = normalizedTitle.split(/\s+/);
-    let brand = '';
-    let type = '';
-    let size = '';
-    const coreProduct = [];
+function categorizeProducts(products) {
+    const categoriesMap = new Map();
 
+<<<<<<< HEAD
     
+=======
+    // Listas de referência
+    const knownBrands = [
+        'piracanjuba', 'italac', 'parmalat', 'tio joão', 'camil'
+    ];
+    const types = [
+        'integral', 'desnatado', 'semi-desnatado', 'semi desnatado', 'branco', 'carioca', 'tipo carioca'
+    ];
+    const commonWords = [
+        'leite', 'arroz', 'feijão', 'feijao', 'tipo'
+    ];
+>>>>>>> f0a8788 (reajuste após revisão)
     const unitSubstitutions = {
         'quilo': 'kg',
         'litro': 'l',
@@ -27,6 +42,7 @@ function extractKeyFeatures(title) {
         'ml': 'ml'
     };
 
+<<<<<<< HEAD
     
     const knownBrands = [
         'piracanjuba', 'italac', 'elegê', 'parmalat', 'tirolez', 'scala', 'del valle', 'natural one', 'maguary',
@@ -87,14 +103,56 @@ function extractKeyFeatures(title) {
 function categorizeProducts(products) {
     const categoriesMap = new Map();
 
+=======
+>>>>>>> f0a8788 (reajuste após revisão)
     products.forEach(product => {
-        const features = extractKeyFeatures(product.title);
+        const normalizedTitle = normalizeString(product.title);
+        const words = normalizedTitle.split(' ');
 
-        const categoryKey = `${features.coreProduct} ${features.type} ${features.size}`.trim();
+        // Extrair tamanho
+        let size = '';
+        const sizeRegex = /(\d+(?:\.\d+)?)(l|kg|g|ml|quilo|litro)/i;
+        const sizeMatch = normalizedTitle.match(sizeRegex);
+        if (sizeMatch) {
+            size = sizeMatch[0];
+            Object.entries(unitSubstitutions).forEach(([key, value]) => {
+                size = size.replace(key, value);
+            });
+        }
+
+        // Separar palavras em marca, tipo e produto base
+        let brand = '';
+        let type = '';
+        const coreProductWords = [];
+
+        words.forEach(word => {
+            if (word.match(sizeRegex)) return; // Ignora tamanho
+            if (knownBrands.includes(word) && !brand) {
+                brand = word;
+                return;
+            }
+            if (types.includes(word) && !type) {
+                type = word;
+                return;
+            }
+            if (!coreProductWords.includes(word)) {
+                coreProductWords.push(word);
+            }
+        });
+
+        // Montar chave de categoria (ordem fixa: produto + tipo + marca + tamanho)
+        const productBase = coreProductWords.filter(w => commonWords.includes(w)).join(' ');
+        const categoryKey = `${productBase} ${type} ${brand} ${size}`.trim().replace(/\s+/g, ' ');
+
+        // Capitalizar primeira letra de cada palavra para o nome da categoria
+        const categoryName = categoryKey
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
 
         if (!categoriesMap.has(categoryKey)) {
             categoriesMap.set(categoryKey, {
-                category: `${features.coreProduct} ${features.size}`,
+                category: categoryName,
                 count: 0,
                 products: []
             });
@@ -104,52 +162,34 @@ function categorizeProducts(products) {
         category.count++;
         category.products.push({
             title: product.title,
-            supermarket: product.supermarket,
-            price: product.price
+            supermarket: product.supermarket
         });
     });
 
     return Array.from(categoriesMap.values());
 }
 
+<<<<<<< HEAD
 
+=======
+// Teste com os dados do enunciado
+>>>>>>> f0a8788 (reajuste após revisão)
 const products = [
-    { "id": 1, "title": "Leite Integral Piracanjuba 1L", "supermarket": "Supermercado A", "price": 4.99 },
-    { "id": 2, "title": "Leite Integral Italac 1L", "supermarket": "Supermercado B", "price": 5.29 },
-    { "id": 3, "title": "Leite Integral Elegê 1L", "supermarket": "Supermercado C", "price": 4.89 },
-    { "id": 4, "title": "Leite Integral Parmalat 1L", "supermarket": "Supermercado D", "price": 5.19 },
-    { "id": 5, "title": "Leite Desnatado Piracanjuba 1L", "supermarket": "Supermercado A", "price": 4.79 },
-    { "id": 6, "title": "Leite Desnatado Italac 1L", "supermarket": "Supermercado B", "price": 4.99 },
-    { "id": 7, "title": "Queijo Mussarela Piracanjuba 500g", "supermarket": "Supermercado A", "price": 19.99 },
-    { "id": 8, "title": "Queijo Mussarela Tirolez 500g", "supermarket": "Supermercado B", "price": 21.49 },
-    { "id": 9, "title": "Queijo Mussarela Scala 500g", "supermarket": "Supermercado C", "price": 22.49 },
-    { "id": 10, "title": "Queijo Prato Tirolez 500g", "supermarket": "Supermercado D", "price": 20.99 },
-    { "id": 11, "title": "Queijo Prato Scala 500g", "supermarket": "Supermercado A", "price": 22.49 },
-    { "id": 12, "title": "Suco de Laranja Del Valle 900ml", "supermarket": "Supermercado A", "price": 3.99 },
-    { "id": 13, "title": "Suco de Laranja Natural One 900ml", "supermarket": "Supermercado B", "price": 4.49 },
-    { "id": 14, "title": "Suco de Laranja Maguary 1L", "supermarket": "Supermercado C", "price": 4.79 },
-    { "id": 15, "title": "Suco de Uva Integral Aurora 900ml", "supermarket": "Supermercado C", "price": 4.29 },
-    { "id": 16, "title": "Suco de Uva Integral Casa de Madeira 900ml", "supermarket": "Supermercado A", "price": 5.29 },
-    { "id": 17, "title": "Carne Moída Friboi 1kg", "supermarket": "Supermercado A", "price": 29.99 },
-    { "id": 18, "title": "Carne Moída Seara 1kg", "supermarket": "Supermercado B", "price": 31.99 },
-    { "id": 19, "title": "Carne Moída Swift 500g", "supermarket": "Supermercado C", "price": 15.99 },
-    { "id": 20, "title": "Filé de Frango Seara 1kg", "supermarket": "Supermercado C", "price": 18.99 },
-    { "id": 21, "title": "Filé de Frango Perdigão 1kg", "supermarket": "Supermercado A", "price": 19.99 },
-    { "id": 22, "title": "Peito de Frango Sadia 1kg", "supermarket": "Supermercado B", "price": 22.49 },
-    { "id": 23, "title": "Peito de Frango Swift 1kg", "supermarket": "Supermercado C", "price": 23.49 },
-    { "id": 24, "title": "Picanha Bovina Friboi 1kg", "supermarket": "Supermercado A", "price": 79.99 },
-    { "id": 25, "title": "Picanha Bovina Swift 1kg", "supermarket": "Supermercado B", "price": 84.99 },
-    { "id": 26, "title": "Arroz Branco Tio João 5kg", "supermarket": "Supermercado C", "price": 24.99 },
-    { "id": 27, "title": "Arroz Branco Camil 5kg", "supermarket": "Supermercado A", "price": 26.99 },
-    { "id": 28, "title": "Feijão Carioca Kicaldo 1kg", "supermarket": "Supermercado B", "price": 7.89 },
-    { "id": 29, "title": "Feijão Carioca Camil 1kg", "supermarket": "Supermercado C", "price": 8.49 },
-    { "id": 30, "title": "Óleo de Soja Soya 900ml", "supermarket": "Supermercado A", "price": 8.79 },
-    { "id": 31, "title": "Óleo de Soja Liza 900ml", "supermarket": "Supermercado B", "price": 9.29 },
-    { "id": 32, "title": "Óleo de Soja Cocinero 1L", "supermarket": "Supermercado C", "price": 9.49 },
-    { "id": 33, "title": "Macarrão Espaguete Adria 500g", "supermarket": "Supermercado C", "price": 4.99 },
-    { "id": 34, "title": "Macarrão Espaguete Renata 500g", "supermarket": "Supermercado A", "price": 5.49 },
-    { "id": 35, "title": "Macarrão Parafuso Fortaleza 500g", "supermarket": "Supermercado B", "price": 4.99 },
-    { "id": 36, "title": "Macarrão Parafuso Barilla 500g", "supermarket": "Supermercado C", "price": 5.49 }
+    { "id": 1, "title": "Leite Integral Piracanjuba 1L", "supermarket": "Supermercado A" },
+    { "id": 2, "title": "Leite Piracanjuba Integral 1L", "supermarket": "Supermercado B" },
+    { "id": 3, "title": "Leite Integral Italac 1L", "supermarket": "Supermercado A" },
+    { "id": 4, "title": "Leite Italac Integral 1L", "supermarket": "Supermercado C" },
+    { "id": 5, "title": "Leite Parmalat Integral 1L", "supermarket": "Supermercado D" },
+    { "id": 6, "title": "Leite Desnatado Piracanjuba 1L", "supermarket": "Supermercado A" },
+    { "id": 7, "title": "Piracanjuba Leite Desnatado 1L", "supermarket": "Supermercado B" },
+    { "id": 8, "title": "Leite Semi-Desnatado Piracanjuba 1L", "supermarket": "Supermercado A" },
+    { "id": 9, "title": "Leite Piracanjuba Semi Desnatado 1 Litro", "supermarket": "Supermercado C" },
+    { "id": 10, "title": "Arroz Branco Tio João 5kg", "supermarket": "Supermercado A" },
+    { "id": 11, "title": "Arroz Tio João Branco 5kg", "supermarket": "Supermercado B" },
+    { "id": 12, "title": "Arroz Tio João Integral 5kg", "supermarket": "Supermercado A" },
+    { "id": 13, "title": "Feijão Carioca Camil 1kg", "supermarket": "Supermercado A" },
+    { "id": 14, "title": "Feijão Camil Tipo Carioca 1kg", "supermarket": "Supermercado C" },
+    { "id": 15, "title": "Feijao Carioca Camil 1 Quilo", "supermarket": "Supermercado D" }
 ];
 
 const categorizedProducts = categorizeProducts(products);
